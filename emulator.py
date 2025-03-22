@@ -39,7 +39,7 @@ MODE = None
 MOCKUPFOLDERS = None
 STATIC = None
 
-CONFIG = 'emulator-config.json'
+CONFIG = 'emulator-config_dynamic_populate.json'
 
 # Base URL of the RESTful interface
 REST_BASE = '/redfish/v1/'

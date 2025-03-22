@@ -1,8 +1,19 @@
+#!/usr/bin/env python3
+# Copyright Notice:
+# Copyright 2017-2019 DMTF. All rights reserved.
+# License: BSD 3-Clause License. For full text see link: https://github.com/DMTF/Redfish-Interface-Emulator/blob/main/LICENSE.md
+
+# sessionService.py
+
+import copy
+from api_emulator.utils import replace_recurse
+
+_TEMPLATE = \
 {
     "@odata.context": "/redfish/v1/$metadata#Bios.Bios",
-    "@odata.id": "/redfish/v1/Systems/1/Bios",
+    "@odata.id": "/redfish/v1/Systems/{cs_id}/Bios",
     "@odata.type": "#Bios.v1_2_3.Bios",
-    "Id": "Bios",
+    "Id": "{id}",
     "Name": "BIOS Settings",
     "Description": "System BIOS Configuration",
     "AttributeRegistry": "/redfish/v1/Registries/BiosAttributeRegistry",
@@ -61,3 +72,8 @@
         }
     }
 }
+
+def get_sessionService_instance(wildcards):
+    c = copy.deepcopy(_TEMPLATE)
+    replace_recurse(c, wildcards)
+    return c

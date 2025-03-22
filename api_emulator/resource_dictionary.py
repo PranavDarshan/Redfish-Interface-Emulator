@@ -36,3 +36,4 @@ class ResourceDictionary(object):
             print('Value: ')
             print(resdict[x])
 
+resource_dictionary = ResourceDictionary()

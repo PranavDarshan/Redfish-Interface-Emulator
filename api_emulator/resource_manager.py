@@ -49,6 +49,8 @@ from .redfish.pcie_switch_api import PCIeSwitchesAPI, PCIeSwitchAPI
 from .redfish.CompositionService_api import CompositionServiceAPI
 from .redfish.ResourceBlock_api import ResourceBlockCollectionAPI, ResourceBlockAPI, CreateResourceBlock
 from .redfish.ResourceZone_api import ResourceZoneCollectionAPI, ResourceZoneAPI, CreateResourceZone
+# Bios API
+from .redfish.Bios_api import BiosAPI, BiosCollectionAPI
 
 mockupfolders = []
 
@@ -220,7 +222,6 @@ class ResourceManager(object):
         g.api.add_resource(ResourceZoneCollectionAPI, '/redfish/v1/CompositionService/ResourceZones')
         g.api.add_resource(ResourceZoneAPI, '/redfish/v1/CompositionService/ResourceZones/<string:ident>',
                 resource_class_kwargs={'rb': g.rest_base})
-
 
     @property
     def configuration(self):
