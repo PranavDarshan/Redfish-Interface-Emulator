@@ -12,9 +12,9 @@ from api_emulator.redfish.processor import CreateProcessor
 from api_emulator.redfish.memory import CreateMemory
 from api_emulator.redfish.simplestorage import CreateSimpleStorage
 from api_emulator.redfish.ethernetinterface import CreateEthernetInterface
-
+import logging
 import g
-
+import uuid
 from api_emulator.redfish.ResourceBlock_api import CreateResourceBlock
 from api_emulator.redfish.ResourceZone_api import CreateResourceZone
 
@@ -68,19 +68,6 @@ def create_resources(template, chassis, suffix, suffix_id):
                                     speedmbps=eth.get('SpeedMbps', 1000))
     return resource_ids
 
-def recursive_format(obj, index):
-    if isinstance(obj, dict):
-        return {k: recursive_format(v, index) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [recursive_format(elem, index) for elem in obj]
-    elif isinstance(obj, str):
-        try:
-            return obj.format(index)
-        except:
-            return obj
-    else:
-        return obj
-    
 def populate(cfg):
     #cfg = 10
     if type(cfg) is int:
@@ -94,15 +81,17 @@ def populate(cfg):
             chassis_count += 1
             chassis = chassi_template['Id'].format(chassis_count)
             bmc = 'BMC-{}'.format(chassis_count)
+            name=chassi_template['Name']
             sys_ids = []
             rb_ids = []
             for compsys_template in chassi_template['Links'].get('ComputerSystems',[]):
                 for j in range(compsys_template.get('Count', 1)):
+                    uid=uuid.uuid1()
                     cs_count += 1
                     compSys = compsys_template['Id'].format(cs_count)
                     sys_ids.append(compSys)
                     CreateComputerSystem(
-                        resource_class_kwargs={'rb': g.rest_base, 'linkChassis': [chassis], 'linkMgr': bmc}).put(
+                        resource_class_kwargs={'rb': g.rest_base, 'linkChassis': [chassis], 'linkMgr': bmc,'uuid':uid}).put(
                         compSys)
                     create_resources(compsys_template, chassis, 'Systems', compSys)
 
@@ -126,7 +115,7 @@ def populate(cfg):
                             rb.post(g.rest_base,rb_id,resource_name,resource_id)
 
             CreateChassis(resource_class_kwargs={
-                'rb': g.rest_base, 'linkSystem': sys_ids, 'linkResourceBlocks':rb_ids, 'linkMgr': bmc}).put(chassis)
+                'rb': g.rest_base, 'linkSystem': sys_ids, 'linkResourceBlocks':rb_ids, 'linkMgr': bmc,'name':name}).put(chassis)
             CreatePower(resource_class_kwargs={'rb': g.rest_base, 'ch_id': chassis}).put(chassis)
             CreateThermal(resource_class_kwargs={'rb': g.rest_base, 'ch_id': chassis}).put(chassis)
             CreateManager(resource_class_kwargs={

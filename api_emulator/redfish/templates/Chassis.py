@@ -14,7 +14,7 @@ _TEMPLATE = \
         "@odata.id": "{rb}Chassis/{id}",
         "@odata.type": "#Chassis.v1_0_0.Chassis",
         "Id": "{id}",
-        "Name": "Computer System Chassis",
+        "Name": "{name}",
         "ChassisType": "RackMount",
         "Manufacturer": "Redfish Computers",
         "Model": "3500RX",

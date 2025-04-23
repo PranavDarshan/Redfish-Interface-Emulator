@@ -18,11 +18,11 @@ _TEMPLATE = \
     "AssetTag": "free form asset tag",
     "Manufacturer": "Manufacturer Name",
     "Model": "Model Name",
-    "SKU": "",
+    "SKU": "{sku}",
     "SerialNumber": "2M220100SL",
     "PartNumber": "",
     "Description": "Description of server",
-    "UUID": "00000000-0000-0000-0000-000000000000",
+    "UUID": "{uuid}",
     "HostName": "web-srv344",
     "Status": {
         "State": "Enabled",
@@ -134,7 +134,7 @@ def get_ComputerSystem_instance(wildcards):
     c['@odata.context'] = c['@odata.context'].format(**wildcards)
     c['@odata.id'] = c['@odata.id'].format(**wildcards)
     c['Id'] = c['Id'].format(**wildcards)
-
+    c['UUID']=c['UUID'].format(**wildcards)
     c['Bios']['@odata.id'] = c['Bios']['@odata.id'].format(**wildcards)
     c['SecureBoot']['@odata.id'] = c['SecureBoot']['@odata.id'].format(**wildcards)
     c['Processors']['@odata.id'] = c['Processors']['@odata.id'].format(**wildcards)
