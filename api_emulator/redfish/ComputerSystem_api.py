@@ -17,6 +17,10 @@ import copy
 from flask import Flask, request, make_response, render_template
 from flask_restful import reqparse, Api, Resource
 
+import os
+from flask import jsonify
+ROOT = os.path.join(os.path.dirname(__file__), 'Systems')
+
 from .templates.ComputerSystem import get_ComputerSystem_instance
 from .ResetActionInfo_api import ResetActionInfo_API
 from .ResetAction_api import ResetAction_API
@@ -149,7 +153,36 @@ class ComputerSystemAPI(Resource):
             traceback.print_exc()
             resp = "Internal Server Error", INTERNAL_ERROR
         return resp
+    
+    # patch for systems
+    def patch(self, ident):
+        logging.info('ComputerSystemAPI PATCH called for {ident}')
+        patch_data = request.get_json(force=True)
 
+        try:
+            
+            if ident not in members:
+                logging.error(f"System {ident} not found in members")
+                return {"error": f"{ident} not found."}, 404
+            
+            updatable_fields = ["Name", "HostName", "AssetTag", "SerialNumber", "UUID"]
+            updated_fields = {}
+
+            for key in patch_data:
+                if key in updatable_fields and key in members[ident]:
+                    members[ident][key] = patch_data[key]
+                    updated_fields[key] = patch_data[key]
+            
+            return {
+                "Message": f"{ident} updated successfully.",
+                "UpdatedFields": updated_fields,
+                "System": members[ident]
+            }, 200
+        
+        except Exception as e:
+            logging.error(f"Error during patch for {ident}: {str(e)}")
+            traceback.print_exc()
+            return jsonify({"error": f"An error occurred: {str(e)}"}), 500
    
 
 
