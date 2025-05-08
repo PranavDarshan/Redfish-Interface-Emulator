@@ -19,7 +19,7 @@ _TEMPLATE = \
         "Manufacturer": "Redfish Computers",
         "Model": "3500RX",
         "SKU": "8675309",
-        "SerialNumber": "437XR1138R2",
+        "SerialNumber": "{cno}",
         "Version": "1.02",
         "PartNumber": "224071-J23",
         "AssetTag": "Chicago-45Z-2381",
