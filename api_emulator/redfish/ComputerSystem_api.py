@@ -16,7 +16,7 @@ import logging
 import copy
 from flask import Flask, request, make_response, render_template
 from flask_restful import reqparse, Api, Resource
-
+import uuid
 import os
 from flask import jsonify
 ROOT = os.path.join(os.path.dirname(__file__), 'Systems')
@@ -169,15 +169,28 @@ class ComputerSystemAPI(Resource):
             updated_fields = {}
 
             for key in patch_data:
+                for key in patch_data:
+                    if key not in updatable_fields:
+                        return {
+                            "error": f"Field '{key}' is not updatable"
+                        }, 400
                 if key in updatable_fields and key in members[ident]:
+                    if key == "UUID":
+                        try:
+                            new_uuid=uuid.UUID(patch_data[key])
+                        except ValueError:
+                            return{
+                                "error": "Invalid UUID format"
+                            }, 400
+                        
+                        for sys_id, sys_data in members.items():
+                            if sys_id != ident and sys_data.get("UUID") == str(new_uuid):
+                                return {"error": f"UUID {new_uuid} is already used by {sys_id}."}, 400
+                        
                     members[ident][key] = patch_data[key]
                     updated_fields[key] = patch_data[key]
             
-            return {
-                "Message": f"{ident} updated successfully.",
-                "UpdatedFields": updated_fields,
-                "System": members[ident]
-            }, 200
+            return members[ident], 200
         
         except Exception as e:
             logging.error(f"Error during patch for {ident}: {str(e)}")
