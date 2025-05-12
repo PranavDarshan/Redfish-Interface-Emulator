@@ -30,6 +30,7 @@ from .redfish.Subscriptions_api import SubscriptionCollectionAPI, SubscriptionAP
 from .redfish.Chassis_api import ChassisCollectionAPI, ChassisAPI, CreateChassis
 from .redfish.power_api import PowerAPI, CreatePower
 from .redfish.thermal_api import ThermalAPI, CreateThermal
+from .redfish.Drives_api import CreateDrives,Drives_API
 # Manager imports
 from .redfish.Manager_api import ManagerCollectionAPI, ManagerAPI, CreateManager,ManagerResetAPI
 # EgResource imports
@@ -160,8 +161,11 @@ class ResourceManager(object):
         g.api.add_resource(ThermalAPI, '/redfish/v1/Chassis/<string:ident>/Thermal',
                 resource_class_kwargs={'rb': g.rest_base})
         # Chassis SubResources
+        g.api.add_resource(Drives_API, '/redfish/v1/Chassis/<string:ident>/Drives',
+                resource_class_kwargs={'rb': g.rest_base})
         g.api.add_resource(PowerAPI, '/redfish/v1/Chassis/<string:ident>/Power',
                 resource_class_kwargs={'rb': g.rest_base})
+        
 
         # Manager Resources
         g.api.add_resource(ManagerCollectionAPI, '/redfish/v1/Managers')

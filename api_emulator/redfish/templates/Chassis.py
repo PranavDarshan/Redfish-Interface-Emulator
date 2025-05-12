@@ -33,6 +33,9 @@ _TEMPLATE = \
         "Power": {
             "@odata.id": "{rb}Chassis/{id}/Power"
         },
+        "Drives": {
+            "@odata.id": "{rb}Chassis/{id}/Drives"
+        },
         "Links": {
             "ComputerSystems": [],
             "ResourceBlocks": [],

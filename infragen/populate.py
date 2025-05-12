@@ -9,6 +9,7 @@ from api_emulator.redfish.thermal_api import CreateThermal
 from api_emulator.redfish.ResetAction_api import ResetAction_API
 from api_emulator.redfish.ResetActionInfo_api import ResetActionInfo_API
 from api_emulator.redfish.processor import CreateProcessor
+from api_emulator.redfish.Drives_api import CreateDrives
 from api_emulator.redfish.memory import CreateMemory
 from api_emulator.redfish.simplestorage import CreateSimpleStorage
 from api_emulator.redfish.ethernetinterface import CreateEthernetInterface
@@ -119,6 +120,7 @@ def populate(cfg):
 
             CreateChassis(resource_class_kwargs={
                 'rb': g.rest_base, 'linkSystem': sys_ids, 'linkResourceBlocks':rb_ids, 'linkMgr': bmc,'name':name,'cno':csno}).put(chassis)
+            CreateDrives(resource_class_kwargs={'rb': g.rest_base,'ch_id':chassis}).put(chassis)
             CreatePower(resource_class_kwargs={'rb': g.rest_base, 'ch_id': chassis}).put(chassis)
             CreateThermal(resource_class_kwargs={'rb': g.rest_base, 'ch_id': chassis}).put(chassis)
             CreateManager(resource_class_kwargs={
