@@ -97,6 +97,10 @@ _TEMPLATE = \
     "EthernetInterfaces": {
         "@odata.id": "{rb}Systems/{id}/EthernetInterfaces"
     },
+    "Storage":{
+        "@odata.id":"{rb}Systems/{id}/Storage"
+    },
+    
     "SimpleStorage": {
         "@odata.id": "{rb}Systems/{id}/SimpleStorage"
     },
@@ -140,6 +144,7 @@ def get_ComputerSystem_instance(wildcards):
     c['Bios']['@odata.id'] = c['Bios']['@odata.id'].format(**wildcards)
     c['SecureBoot']['@odata.id'] = c['SecureBoot']['@odata.id'].format(**wildcards)
     c['Processors']['@odata.id'] = c['Processors']['@odata.id'].format(**wildcards)
+    c['Storage']['@odata.id'] = c['Storage']['@odata.id'].format(**wildcards)
     c['Memory']['@odata.id'] = c['Memory']['@odata.id'].format(**wildcards)
     c['EthernetInterfaces']['@odata.id'] = c['EthernetInterfaces']['@odata.id'].format(**wildcards)
     c['SimpleStorage']['@odata.id'] = c['SimpleStorage']['@odata.id'].format(**wildcards)

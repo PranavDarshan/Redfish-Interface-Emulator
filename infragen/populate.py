@@ -13,6 +13,7 @@ from api_emulator.redfish.Drives_api import CreateDrives
 from api_emulator.redfish.memory import CreateMemory
 from api_emulator.redfish.simplestorage import CreateSimpleStorage
 from api_emulator.redfish.ethernetinterface import CreateEthernetInterface
+from api_emulator.redfish.Storage_api import CreateStorage
 import logging
 import g
 import uuid
@@ -98,6 +99,9 @@ def populate(cfg):
                         resource_class_kwargs={'rb': g.rest_base, 'linkChassis': [chassis], 'linkMgr': bmc,'uuid':uid,'sno':sno,'sku':sku}).put(
                         compSys)
                     create_resources(compsys_template, chassis, 'Systems', compSys)
+                    CreateComputerSystem(
+                        resource_class_kwargs={'rb': g.rest_base}).put(
+                        compSys)
 
             for rb_template in chassi_template['Links'].get('ResourceBlocks',[]):
                 for j in range(rb_template.get('Count', 1)):
