@@ -39,6 +39,7 @@ from .redfish.eg_subresource_api import EgSubResourceCollectionAPI, EgSubResourc
 # ComputerSystem imports
 from .redfish.ComputerSystem_api import ComputerSystemCollectionAPI, ComputerSystemAPI,ComputerSystemResetAPI,CreateComputerSystem
 from .redfish.Storage_api import Storage_API
+from .redfish.storages_api import Storages_API
 from .redfish.processor import Processor, Processors
 from .redfish.memory import Memory, MemoryCollection
 from .redfish.simplestorage import SimpleStorage, SimpleStorageCollection
@@ -194,6 +195,7 @@ class ResourceManager(object):
                 resource_class_kwargs={'rb': g.rest_base})
         g.api.add_resource(ComputerSystemResetAPI, '/redfish/v1/Systems/<string:ident>/Actions/ComputerSystem.Reset',
                    resource_class_kwargs={'rb': g.rest_base})
+        g.api.add_resource(Storages_API, '/redfish/v1/Systems/<string:ident>/Storage/Storage-1')
         # System SubResources
         g.api.add_resource(Processors, '/redfish/v1/Systems/<string:ident>/Processors',
                 resource_class_kwargs={'rb': g.rest_base,'suffix':'Systems'})

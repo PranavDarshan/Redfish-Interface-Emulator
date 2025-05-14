@@ -9,6 +9,7 @@ from api_emulator.redfish.thermal_api import CreateThermal
 from api_emulator.redfish.ResetAction_api import ResetAction_API
 from api_emulator.redfish.ResetActionInfo_api import ResetActionInfo_API
 from api_emulator.redfish.processor import CreateProcessor
+from api_emulator.redfish.storages_api import CreateStorages
 from api_emulator.redfish.Drives_api import CreateDrives
 from api_emulator.redfish.memory import CreateMemory
 from api_emulator.redfish.simplestorage import CreateSimpleStorage
@@ -99,10 +100,12 @@ def populate(cfg):
                         resource_class_kwargs={'rb': g.rest_base, 'linkChassis': [chassis], 'linkMgr': bmc,'uuid':uid,'sno':sno,'sku':sku}).put(
                         compSys)
                     create_resources(compsys_template, chassis, 'Systems', compSys)
-                    CreateComputerSystem(
+                    CreateStorage(
                         resource_class_kwargs={'rb': g.rest_base}).put(
                         compSys)
-
+                    CreateStorages(
+                        resource_class_kwargs={'rb': g.rest_base}).put(
+                        compSys)
             for rb_template in chassi_template['Links'].get('ResourceBlocks',[]):
                 for j in range(rb_template.get('Count', 1)):
                     rb_count += 1

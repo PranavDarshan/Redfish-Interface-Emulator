@@ -8,7 +8,7 @@ TEMPLATE = \
         "Name":"Storage Collection",
         "Members@odata.count":"1",
         "Members":[
-                {"@odata.id": "{rb}Systems/{id}/Storage/Storage-1"},
+                {"@odata.id": "/redfish/v1/Systems/{id}/Storage/Storage-1"},
         ],
         "@odata.id":"{rb}Systems/{id}/Storage"
     }
