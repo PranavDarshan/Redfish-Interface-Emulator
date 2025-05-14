@@ -11,6 +11,7 @@ from api_emulator.redfish.ResetActionInfo_api import ResetActionInfo_API
 from api_emulator.redfish.processor import CreateProcessor
 from api_emulator.redfish.storages_api import CreateStorages
 from api_emulator.redfish.Drives_api import CreateDrives
+from api_emulator.redfish.Drive_api import CreateDrive
 from api_emulator.redfish.memory import CreateMemory
 from api_emulator.redfish.simplestorage import CreateSimpleStorage
 from api_emulator.redfish.ethernetinterface import CreateEthernetInterface
@@ -106,6 +107,8 @@ def populate(cfg):
                     CreateStorages(
                         resource_class_kwargs={'rb': g.rest_base}).put(
                         compSys)
+                    for i in range(6):
+                        CreateDrive(resource_class_kwargs={'rb': g.rest_base,'ch_id':chassis,'dr_id':i,'id':compSys}).put()
             for rb_template in chassi_template['Links'].get('ResourceBlocks',[]):
                 for j in range(rb_template.get('Count', 1)):
                     rb_count += 1
