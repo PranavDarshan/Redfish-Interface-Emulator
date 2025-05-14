@@ -60,6 +60,8 @@ from .redfish.BiosSettings_api import BiosSettingsAPI
 # Virtual Media imports
 from .redfish.VirtualMedia_api import VirtualMediaAPI, VirtualMediaCollectionAPI, VirtualMediaEjectAPI, VirtualMediaInsertAPI
 
+# Volume imports
+from .redfish.Volume_api import VolumeAPI, VolumeCollectionAPI
 
 mockupfolders = []
 
@@ -250,7 +252,10 @@ class ResourceManager(object):
         g.api.add_resource(VirtualMediaAPI, '/redfish/v1/Managers/<string:ident1>/VirtualMedia/<string:ident2>', resource_class_kwargs={'rb': g.rest_base})
         g.api.add_resource(VirtualMediaEjectAPI, '/redfish/v1/Managers/<string:ident1>/VirtualMedia/<string:ident2>/Actions/VirtualMedia.EjectMedia', resource_class_kwargs={'rb': g.rest_base})
         g.api.add_resource(VirtualMediaInsertAPI, '/redfish/v1/Managers/<string:ident1>/VirtualMedia/<string:ident2>/Actions/VirtualMedia.InsertMedia', resource_class_kwargs={'rb': g.rest_base})
-    
+        # Volume Resources
+        g.api.add_resource(VolumeCollectionAPI, '/redfish/v1/Systems/<string:ident1>/Storage/<string:ident2>/Volumes', resource_class_kwargs={'rb': g.rest_base})
+        g.api.add_resource(VolumeAPI, '/redfish/v1/Systems/<string:ident1>/Storage/<string:ident2>/Volumes/<string:ident3>', resource_class_kwargs={'rb': g.rest_base})
+
     @property
     def configuration(self):
         """

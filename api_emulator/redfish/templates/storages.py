@@ -62,7 +62,7 @@ TEMPLATE = \
         ],
         "Volumes":
             {
-                "@odata.id":"/redfish/v1/Systems/{id}/Storage/1/Volumes"
+                "@odata.id":"/redfish/v1/Systems/{id}/Storage/Storage-1/Volumes"
         },
         "Actions":{
         "#Storage.SetEncryptionKey":{
