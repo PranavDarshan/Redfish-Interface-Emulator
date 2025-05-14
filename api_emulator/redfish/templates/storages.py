@@ -66,7 +66,7 @@ TEMPLATE = \
         },
         "Actions":{
         "#Storage.SetEncryptionKey":{
-        "target":"/redfish/v1/Systems/{id}/Storage/1/Actions/Storage.SetEncryptionKey"}
+        "target":"/redfish/v1/Systems/{id}/Storage/Storage-1/Actions/Storage.SetEncryptionKey"}
         } ,
         "@odata.id":"/redfish/v1/Systems/{id}/Storage/Storage-1"
     }
