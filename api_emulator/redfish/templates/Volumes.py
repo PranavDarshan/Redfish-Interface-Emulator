@@ -69,8 +69,9 @@ def get_volume_instance(wildcards, drive_ids, raid_type, capacity_bytes):
     
     wildcards["raid_type"] = raid_type
     wildcards["capacity_bytes"] = str(capacity_bytes)
-
+    vol = "Volume-"+str(wildcards['volume_id'])
     c = copy.deepcopy(_VOLUME_TEMPLATE)
+    c['@odata.id'] = c['@odata.id'].format(rb=wildcards['rb'], system_id=wildcards['system_id'], storage_id=wildcards['storage_id'], volume_id=vol)
     c["Links"]["Drives"] = [{"@odata.id": did} for did in drive_ids]
     replace_recurse(c, wildcards)
     return c

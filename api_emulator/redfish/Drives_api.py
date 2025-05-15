@@ -12,12 +12,11 @@ class Drives_API(Resource):
         logging.info('DrivesAPI init called')
         self.rb = kwargs.get('rb', '')
     
-    
     def get(self,ident):
         logging.info(f'DrivesAPI GET called')
         try:
             global drives_config
-            drives_config=get_Drives_instance({'rb': self.rb, 'ch_id': ident})  
+            drives_config=get_Drives_instance({'rb': self.rb, 'ch_id': ident})
             return drives_config, 200
         except Exception:
             traceback.print_exc()

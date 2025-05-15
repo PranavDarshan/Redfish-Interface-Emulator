@@ -5,20 +5,27 @@ import copy
 from flask import Flask, request, make_response
 from flask_restful import reqparse, Api, Resource
 from .templates.Drive import get_Drive_instance
-drives_config={}
+from .Drives_api import drives_config
+
+drive_config={}
+drives = ["Drive-1", "Drive-2", "Drive-3", "Drive-4", "Drive-5", "Drive-6"]
 INTERNAL_ERROR=500
 class Drive_API(Resource):
     def __init__(self, **kwargs):
         logging.info('DrivesAPI init called')
         self.rb = kwargs.get('rb', '')
     
-    
     def get(self,ident,ident1):
         logging.info(f'DrivesAPI GET called')
         try:
             global drive_config
-            drive_config=get_Drive_instance({'rb': self.rb, 'ch_id': ident,'dr_id':ident1})  
-            return drive_config, 200
+            if ident1 not in drives:
+                logging.warning(f"Drive {ident1} not found under Chassis {ident}")
+                return {"error": f"Drive {ident1} not found under Chassis {ident}"}, 404
+            
+            if ident1 not in drive_config:
+                drive_config[ident1]=get_Drive_instance({'rb': self.rb, 'ch_id': ident,'dr_id':ident1})
+            return drive_config[ident1], 200
         except Exception:
             traceback.print_exc()
             return INTERNAL_ERROR
