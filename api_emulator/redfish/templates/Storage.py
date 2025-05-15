@@ -10,7 +10,7 @@ TEMPLATE = \
         "Members":[
                 {"@odata.id": "/redfish/v1/Systems/{id}/Storage/Storage-1"},
         ],
-        "@odata.id":"{rb}Systems/{id}/Storage"
+        "@odata.id":"/redfish/v1/Systems/{id}/Storage"
     }
 
 def get_Storage_instance(wildcards):
