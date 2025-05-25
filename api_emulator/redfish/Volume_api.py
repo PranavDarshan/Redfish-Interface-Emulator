@@ -78,7 +78,23 @@ class VolumeCollectionAPI(Resource):
                     return {"error":"Cannot create RAID1 volume with the drive. Minimum of 2 drive links is required for RAID1 volume."}, 400
                 if min_capacity_bytes<req['CapacityBytes']:
                     return {"error":f"Capacity of bytes exceeded for RAID1. Maximum capacity is {min_capacity_bytes}"}, 400
-            
+            elif req['RAIDType'] == "RAID5":
+                if len(links)<3:
+                    return {"error":"Cannot create RAID5 volume with the drive. Minimum of 3 drive links is required for RAID5 volume."}, 400
+                if (len(links)-1)*min_capacity_bytes<req['CapacityBytes']:
+                    return {"error":f"Capacity of bytes exceeded for RAID5. Maximum capacity is {(len(links)-1)*min_capacity_bytes}"}, 400
+            elif req['RAIDType'] == "RAID6":
+                if len(links)<4:
+                    return {"error":"Cannot create RAID6 volume with the drive. Minimum of 4 drive links is required for RAID6 volume."}, 400
+                if (len(links)-2)*min_capacity_bytes<req['CapacityBytes']:
+                    return {"error":f"Capacity of bytes exceeded for RAID6. Maximum capacity is {(len(links)-2)*min_capacity_bytes}"}, 400
+            elif req['RAIDType'] == "RAID10":
+                if len(links)<4:
+                    return {"error":"Cannot create RAID10 volume with the drive. Minimum of 4 drive links is required for RAID10 volume."}, 400
+                if len(links)%2!=0:
+                    return {"error":"Cannot create RAID10 volume with the drive. Even number of drive links is required for RAID10 volume."}, 400
+                if (len(links)/2)*min_capacity_bytes<req['CapacityBytes']:
+                    return {"error":f"Capacity of bytes exceeded for RAID10. Maximum capacity is {(len(links)/2)*min_capacity_bytes}"}, 400
             drive_links = []
             for link in links:
                 drive_id = link["@odata.id"].split('/')[-1]
