@@ -136,3 +136,24 @@ class VolumeAPI(Resource):
         except Exception:
             traceback.print_exc()
             return {"error": "Internal server error"}, INTERNAL_ERROR
+    
+    def delete(self, ident1, ident2, ident3):
+        try:
+            if ident1 in volume_members and ident2 in volume_members[ident1] and ident3 in volume_members[ident1][ident2]:
+                volume_data = volume_members[ident1][ident2][ident3]
+                drive_links = volume_data["Links"]["Drives"]
+            
+                for link in drive_links:
+                    drive_id = link["@odata.id"].split("/")[-1]
+                    if drive_id in drive_config:
+                        if "Links" in drive_config[drive_id] and "Volumes" in drive_config[drive_id]["Links"]:
+                            del drive_config[drive_id]["Links"]["Volumes"]
+
+                del volume_members[ident1][ident2][ident3]
+
+                return {"message": f"Volume {ident3} deleted successfully."}, 204
+            else:
+                return {"error": "Volume not found."}, 404
+        except Exception:
+            traceback.print_exc()
+            return {"error": "Internal server error"}, INTERNAL_ERROR
