@@ -60,7 +60,7 @@ class VirtualMediaEjectAPI(Resource):
             
             if member_data[ident1][ident2]["Image"] is None and member_data[ident1][ident2]["Inserted"] == False:
                 error_message = {"error": "No media is inserted. Please insert a media before ejecting."}
-                return error_message
+                return error_message, 400
             
             member_data[ident1][ident2]= get_virtual_media_instance(wildcards={"rb": self.rb, "manager_id": ident1, "member_id":ident2}) 
             member_data[ident1][ident2]["Inserted"] = False
@@ -84,13 +84,17 @@ class VirtualMediaInsertAPI(Resource):
                 member_data[ident1][ident2]= get_virtual_media_instance(wildcards={"rb": self.rb, "manager_id": ident1, "member_id":ident2})    
             
             # Ensure that insert cannot be performed unless media is ejected
-            if member_data[ident1][ident2]["Image"] is not None:
+            if member_data[ident1][ident2]["Image"] is not None and member_data[ident1][ident2]["Inserted"]==False:
                 err_message = {"error": "Cannot insert unless media is ejected."}
-                return err_message, 200
+                return err_message, 400
             if not request.json:
                 return "Invalid input, expected JSON", 400
             for key, value in request.json.items():
-                member_data[ident1][ident2][key]= value
+                if key in member_data[ident1][ident2]:
+                    member_data[ident1][ident2][key]= value
+                else:
+                    del member_data[ident1][ident2]
+                    return {"error": f"Invalid VirtualMedia attribute: {key}"}, 400
             
             member_data[ident1][ident2]["Inserted"]= True
             return member_data[ident1][ident2], 200
