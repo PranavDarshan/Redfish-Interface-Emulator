@@ -105,7 +105,11 @@ class VolumeCollectionAPI(Resource):
                 if not response["Links"]["Volumes"]:
                     drive_config[drive_id]["Links"]["Volumes"].append({"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)})
                 else:
-                    return {"error":"Cannot create volume with the drive. Drive is already attached to another volume."}, 400
+                    drive = link['@odata.id']
+                    for drv in drive_links:
+                        d = drv.split('/')[-1]
+                        del drive_config[d]
+                    return {"error":f"Cannot create volume with the drive. Drive {drive} is already attached to another volume."}, 400
             
             vid = "Volume-"+str(volume_id)
             config = get_volume_instance(wildcards={"rb": self.rb, "system_id":ident1, "storage_id":ident2, "volume_id":volume_id, "durable_name":volume_uuid}, drive_ids=drive_links, raid_type=req['RAIDType'], capacity_bytes=req['CapacityBytes'])
