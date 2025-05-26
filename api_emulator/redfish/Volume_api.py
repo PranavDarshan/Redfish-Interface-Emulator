@@ -103,7 +103,7 @@ class VolumeCollectionAPI(Resource):
                 response, status = drive_api.get(chassis_id, drive_id)
                 drive_links.append(link['@odata.id'])
                 if not response["Links"]["Volumes"]:
-                    drive_config[drive_id]["Links"]["Volumes"] = {"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)}
+                    drive_config[drive_id]["Links"]["Volumes"].append({"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)})
                 else:
                     return {"error":"Cannot create volume with the drive. Drive is already attached to another volume."}, 400
             
