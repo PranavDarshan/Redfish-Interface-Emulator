@@ -64,8 +64,8 @@ class VolumeCollectionAPI(Resource):
                 chassis_id = link["@odata.id"].split('/')[-3]
                 drive_api = Drive_API(rb="/redfish/v1")
                 response, status = drive_api.get(chassis_id, drive_id)
-                if min_capacity_bytes>drive_config[drive_id]['CapacityBytes']:
-                 min_capacity_bytes = drive_config[drive_id]['CapacityBytes']
+                if min_capacity_bytes>drive_config[chassis_id][drive_id]['CapacityBytes']:
+                 min_capacity_bytes = drive_config[chassis_id][drive_id]['CapacityBytes']
             
             # RAID Drive links validation 
             if req['RAIDType'] == "RAID0":
@@ -103,12 +103,13 @@ class VolumeCollectionAPI(Resource):
                 response, status = drive_api.get(chassis_id, drive_id)
                 drive_links.append(link['@odata.id'])
                 if not response["Links"]["Volumes"]:
-                    drive_config[drive_id]["Links"]["Volumes"].append({"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)})
+                    drive_config[chassis_id][drive_id]["Links"]["Volumes"].append({"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)})
                 else:
                     drive = link['@odata.id']
                     for drv in drive_links:
                         d = drv.split('/')[-1]
-                        del drive_config[d]
+                        cid = drv.split('/')[-3]
+                        del drive_config[cid][d]
                     return {"error":f"Cannot create volume with the drive. Drive {drive} is already attached to another volume."}, 400
             
             vid = "Volume-"+str(volume_id)
@@ -149,9 +150,10 @@ class VolumeAPI(Resource):
             
                 for link in drive_links:
                     drive_id = link["@odata.id"].split("/")[-1]
-                    if drive_id in drive_config:
-                        if "Links" in drive_config[drive_id] and "Volumes" in drive_config[drive_id]["Links"]:
-                            del drive_config[drive_id]["Links"]["Volumes"]
+                    chassis_id = link["@odata.id"].split("/")[-3]
+                    if drive_id in drive_config[chassis_id]:
+                        if "Links" in drive_config[chassis_id][drive_id] and "Volumes" in drive_config[chassis_id][drive_id]["Links"]:
+                            del drive_config[chassis_id][drive_id]["Links"]["Volumes"]
 
                 del volume_members[ident1][ident2][ident3]
 

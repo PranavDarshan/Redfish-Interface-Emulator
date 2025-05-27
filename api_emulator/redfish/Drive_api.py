@@ -22,10 +22,12 @@ class Drive_API(Resource):
             if ident1 not in drives:
                 logging.warning(f"Drive {ident1} not found under Chassis {ident}")
                 return {"error": f"Drive {ident1} not found under Chassis {ident}"}, 404
-            
-            if ident1 not in drive_config:
-                drive_config[ident1]=get_Drive_instance({'rb': self.rb, 'ch_id': ident,'dr_id':ident1})
-            return drive_config[ident1], 200
+
+            if ident not in drive_config:
+                drive_config[ident] = {}
+            if ident1 not in drive_config[ident]:
+                drive_config[ident][ident1]=get_Drive_instance({'rb': self.rb, 'ch_id': ident,'dr_id':ident1})
+            return drive_config[ident][ident1], 200
         except Exception:
             traceback.print_exc()
             return INTERNAL_ERROR
