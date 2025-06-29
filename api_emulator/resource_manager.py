@@ -27,7 +27,7 @@ from .redfish.event import Event
 from .redfish.EventService_api import EventServiceAPI, CreateEventService
 from .redfish.Subscriptions_api import SubscriptionCollectionAPI, SubscriptionAPI, CreateSubscription
 # Chassis imports
-from .redfish.Chassis_api import ChassisCollectionAPI, ChassisAPI, CreateChassis
+from .redfish.Chassis_api import ChassisCollectionAPI, ChassisAPI, CreateChassis,ChassisResetAPI
 from .redfish.power_api import PowerAPI, CreatePower
 from .redfish.thermal_api import ThermalAPI, CreateThermal
 from .redfish.Drives_api import CreateDrives,Drives_API
@@ -172,7 +172,7 @@ class ResourceManager(object):
                 resource_class_kwargs={'rb': g.rest_base})
         g.api.add_resource(PowerAPI, '/redfish/v1/Chassis/<string:ident>/Power',
                 resource_class_kwargs={'rb': g.rest_base})
-        
+        g.api.add_resource(ChassisResetAPI, '/redfish/v1/Chassis/<string:ident>/Actions/Chassis.Reset')
 
         # Manager Resources
         g.api.add_resource(ManagerCollectionAPI, '/redfish/v1/Managers')

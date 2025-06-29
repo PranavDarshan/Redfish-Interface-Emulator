@@ -33,6 +33,7 @@ _TEMPLATE = \
         "Power": {
             "@odata.id": "{rb}Chassis/{id}/Power"
         },
+        "PowerState":"On",
         "Drives": {
             "@odata.id": "{rb}Chassis/{id}/Drives"
         },
@@ -45,6 +46,11 @@ _TEMPLATE = \
                 }
             ],
          },
+        "Actions": {
+        "#Chassis.Reset": {
+            "target": "{rb}Chassis/{id}/Actions/Chassis.Reset", "@Redfish.ActionInfo": "{rb}Chassis/{id}/ResetActionInfo"
+        },
+    }
     }
 
 

@@ -599,7 +599,7 @@ class ComputerSystemResetAPI(Resource):
             # Prepare response
             response = copy.deepcopy(reset_info)
             response["Parameters"][0]["Value"] = reset_type 
-            response["Message"] = f"System {ident} reset with {reset_type}"
+            response["Message"] = f"{ident} reset with {reset_type}"
             response["PowerState"] = members[ident]["PowerState"]
 
             bios_config = get_bios_config(ident)
