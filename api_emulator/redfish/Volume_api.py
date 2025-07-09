@@ -40,89 +40,130 @@ class VolumeCollectionAPI(Resource):
         except Exception:
             traceback.print_exc()
             return {"error": "Internal server error"}, INTERNAL_ERROR
+    
     def post(self, ident1, ident2):
-
-        logging.info('ComputerSystemAPI POST called')
+        logging.info('VolumeCollectionAPI POST called')
         try:
             global config
-            global wildcards
             config = {}
+
             if ident1 not in volume_members:
                 volume_members[ident1] = {}
-                if ident2 not in volume_members:
-                    volume_members[ident1][ident2] = {}
-            volume_id = len(volume_members[ident1][ident2])+1
+            if ident2 not in volume_members[ident1]:
+                volume_members[ident1][ident2] = {}
+
+            volume_id = len(volume_members[ident1][ident2]) + 1
             req = request.json
-            links= req['Links']['Drives']
-            
-            # Generate UUID type 4
+            links = req['Links']['Drives']
             volume_uuid = str(uuid.uuid4())
-            # Calculate min capacity bytes for raid 0 and raid 1 validation
-            min_capacity_bytes=float('inf')
-            for link in links:
-                drive_id = link["@odata.id"].split('/')[-1]
-                chassis_id = link["@odata.id"].split('/')[-3]
-                drive_api = Drive_API(rb="/redfish/v1")
-                response, status = drive_api.get(chassis_id, drive_id)
-                if min_capacity_bytes>drive_config[chassis_id][drive_id]['CapacityBytes']:
-                 min_capacity_bytes = drive_config[chassis_id][drive_id]['CapacityBytes']
-            
-            # RAID Drive links validation 
-            if req['RAIDType'] == "RAID0":
-                if len(links)<2:
-                    return {"error":"Cannot create RAID0 volume with the drive. Minimum of 2 drive links is required for RAID0 volume."}, 400
-                if req['CapacityBytes']>len(links)*min_capacity_bytes:
-                    return {"error":f"Capacity of bytes exceeded for RAID0. Maximum capacity is {len(links)*min_capacity_bytes}"}, 400
-            elif req['RAIDType'] == "RAID1":
-                if len(links)<2:
-                    return {"error":"Cannot create RAID1 volume with the drive. Minimum of 2 drive links is required for RAID1 volume."}, 400
-                if min_capacity_bytes<req['CapacityBytes']:
-                    return {"error":f"Capacity of bytes exceeded for RAID1. Maximum capacity is {min_capacity_bytes}"}, 400
-            elif req['RAIDType'] == "RAID5":
-                if len(links)<3:
-                    return {"error":"Cannot create RAID5 volume with the drive. Minimum of 3 drive links is required for RAID5 volume."}, 400
-                if (len(links)-1)*min_capacity_bytes<req['CapacityBytes']:
-                    return {"error":f"Capacity of bytes exceeded for RAID5. Maximum capacity is {(len(links)-1)*min_capacity_bytes}"}, 400
-            elif req['RAIDType'] == "RAID6":
-                if len(links)<4:
-                    return {"error":"Cannot create RAID6 volume with the drive. Minimum of 4 drive links is required for RAID6 volume."}, 400
-                if (len(links)-2)*min_capacity_bytes<req['CapacityBytes']:
-                    return {"error":f"Capacity of bytes exceeded for RAID6. Maximum capacity is {(len(links)-2)*min_capacity_bytes}"}, 400
-            elif req['RAIDType'] == "RAID10":
-                if len(links)<4:
-                    return {"error":"Cannot create RAID10 volume with the drive. Minimum of 4 drive links is required for RAID10 volume."}, 400
-                if len(links)%2!=0:
-                    return {"error":"Cannot create RAID10 volume with the drive. Even number of drive links is required for RAID10 volume."}, 400
-                if (len(links)/2)*min_capacity_bytes<req['CapacityBytes']:
-                    return {"error":f"Capacity of bytes exceeded for RAID10. Maximum capacity is {(len(links)/2)*min_capacity_bytes}"}, 400
+            min_capacity_bytes = float('inf')
             drive_links = []
+
+            # Extract system number
+            system_number = ident1.split('-')[-1]
+
+            # Validate all drives are from same chassis and valid range
+            first_drive_path = links[0]["@odata.id"]
+            first_chassis = first_drive_path.split('/')[-3]
+            first_chassis_number = first_chassis.split('-')[-1]
+
+            try:
+                chassis_num_int = int(first_chassis_number)
+            except:
+                return {"error": f"Invalid chassis format in {first_chassis}"}, 400
+
+            if chassis_num_int < 1 or chassis_num_int > 7:
+                return {"error": f"Drive not found: {first_chassis}. Only chassis 1 to 7 are valid."}, 400
+
+            if any(link["@odata.id"].split('/')[-3] != first_chassis for link in links):
+                return {"error": "Cannot mix drives from different chassis in a single volume on a rackmount server."}, 400
+
+            if system_number != first_chassis_number:
+                return {"error": f"Only drives from Chassis-{system_number} can be used with System-{ident1}."}, 400
+
             for link in links:
-                drive_id = link["@odata.id"].split('/')[-1]
-                chassis_id = link["@odata.id"].split('/')[-3]
+                drive_path = link["@odata.id"]
+                chassis_id = drive_path.split('/')[-3]
+                drive_id = drive_path.split('/')[-1]
+                full_drive_key = f"{chassis_id}/{drive_id}"
+
+                # Validate drive number is in valid range
+                try:
+                    drive_num = int(drive_id.split('-')[-1])
+                except:
+                    return {"error": f"Invalid drive format in {drive_id}"}, 400
+
+                if drive_num < 1 or drive_num > 6:
+                    return {"error": f"Invalid drive: {drive_id}. Only Drive-1 to Drive-6 are allowed."}, 400
+
                 drive_api = Drive_API(rb="/redfish/v1")
                 response, status = drive_api.get(chassis_id, drive_id)
-                drive_links.append(link['@odata.id'])
-                if not response["Links"]["Volumes"]:
-                    drive_config[chassis_id][drive_id]["Links"]["Volumes"].append({"@odata.id":self.rb+"Systems/"+ident1+"/Storage/"+ident2+"/Volumes/"+"Volume-"+str(volume_id)})
-                else:
-                    drive = link['@odata.id']
-                    for drv in drive_links:
-                        d = drv.split('/')[-1]
-                        cid = drv.split('/')[-3]
-                        drv_response, _ = drive_api.get(cid, d)
-                        if not drv_response["Links"]["Volumes"]:
-                            if cid in drive_config and d in drive_config[cid]:
-                                del drive_config[cid][d]
-                    return {"error":f"Cannot create volume with the drive. Drive {drive} is already attached to another volume."}, 400
-            
-            vid = "Volume-"+str(volume_id)
-            config = get_volume_instance(wildcards={"rb": self.rb, "system_id":ident1, "storage_id":ident2, "volume_id":volume_id, "durable_name":volume_uuid}, drive_ids=drive_links, raid_type=req['RAIDType'], capacity_bytes=req['CapacityBytes'])
-            volume_members[ident1][ident2][vid]=config
-            resp = config, 201
+
+                if full_drive_key in drive_config and drive_config[full_drive_key]["Links"]["Volumes"]:
+                    return {"error": f"Drive {drive_path} is already attached to a volume."}, 400
+
+                drive_links.append(drive_path)
+
+                capacity = drive_config.get(full_drive_key, {}).get('CapacityBytes', float('inf'))
+                if capacity < min_capacity_bytes:
+                    min_capacity_bytes = capacity
+
+            n = len(drive_links)
+            capacity_requested = req['CapacityBytes']
+            raid_type = req['RAIDType']
+
+            if raid_type == "RAID0":
+                if n < 2:
+                    return {"error": "RAID0 requires at least 2 drives."}, 400
+                if capacity_requested > n * min_capacity_bytes:
+                    return {"error": f"RAID0 max capacity exceeded: {n * min_capacity_bytes}"}, 400
+            elif raid_type == "RAID1":
+                if n < 2:
+                    return {"error": "RAID1 requires at least 2 drives."}, 400
+                if capacity_requested > min_capacity_bytes:
+                    return {"error": f"RAID1 max capacity exceeded: {min_capacity_bytes}"}, 400
+            elif raid_type == "RAID5":
+                if n < 3:
+                    return {"error": "RAID5 requires at least 3 drives."}, 400
+                if capacity_requested > (n - 1) * min_capacity_bytes:
+                    return {"error": f"RAID5 max capacity exceeded: {(n - 1) * min_capacity_bytes}"}, 400
+            elif raid_type == "RAID6":
+                if n < 4:
+                    return {"error": "RAID6 requires at least 4 drives."}, 400
+                if capacity_requested > (n - 2) * min_capacity_bytes:
+                    return {"error": f"RAID6 max capacity exceeded: {(n - 2) * min_capacity_bytes}"}, 400
+            elif raid_type == "RAID10":
+                if n < 4 or n % 2 != 0:
+                    return {"error": "RAID10 requires an even number of at least 4 drives."}, 400
+                if capacity_requested > (n // 2) * min_capacity_bytes:
+                    return {"error": f"RAID10 max capacity exceeded: {(n // 2) * min_capacity_bytes}"}, 400
+
+            for drive_path in drive_links:
+                chassis_id = drive_path.split('/')[-3]
+                drive_id = drive_path.split('/')[-1]
+                full_drive_key = f"{chassis_id}/{drive_id}"
+
+                if full_drive_key not in drive_config:
+                    drive_config[full_drive_key] = {"Links": {"Volumes": []}}
+
+                drive_config[full_drive_key]["Links"]["Volumes"].append({
+                    "@odata.id": f"{self.rb}Systems/{ident1}/Storage/{ident2}/Volumes/Volume-{volume_id}"
+                })
+
+            vid = f"Volume-{volume_id}"
+            config = get_volume_instance(
+                wildcards={"rb": self.rb, "system_id": ident1, "storage_id": ident2, "volume_id": volume_id, "durable_name": volume_uuid},
+                drive_ids=drive_links,
+                raid_type=raid_type,
+                capacity_bytes=capacity_requested
+            )
+            volume_members[ident1][ident2][vid] = config
+            return config, 201
+
         except Exception:
             traceback.print_exc()
-            resp = INTERNAL_ERROR
-        return resp   
+            return {"error": "Internal server error"}, INTERNAL_ERROR
+
 
         
 class VolumeAPI(Resource):
@@ -153,10 +194,9 @@ class VolumeAPI(Resource):
             
                 for link in drive_links:
                     drive_id = link["@odata.id"].split("/")[-1]
-                    chassis_id = link["@odata.id"].split("/")[-3]
-                    if drive_id in drive_config[chassis_id]:
-                        if "Links" in drive_config[chassis_id][drive_id] and "Volumes" in drive_config[chassis_id][drive_id]["Links"]:
-                            del drive_config[chassis_id][drive_id]["Links"]["Volumes"]
+                    if drive_id in drive_config:
+                        if "Links" in drive_config[drive_id] and "Volumes" in drive_config[drive_id]["Links"]:
+                            del drive_config[drive_id]["Links"]["Volumes"]
 
                 del volume_members[ident1][ident2][ident3]
 
