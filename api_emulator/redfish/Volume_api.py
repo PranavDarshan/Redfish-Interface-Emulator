@@ -191,12 +191,16 @@ class VolumeAPI(Resource):
             if ident1 in volume_members and ident2 in volume_members[ident1] and ident3 in volume_members[ident1][ident2]:
                 volume_data = volume_members[ident1][ident2][ident3]
                 drive_links = volume_data["Links"]["Drives"]
-            
+
                 for link in drive_links:
-                    drive_id = link["@odata.id"].split("/")[-1]
-                    if drive_id in drive_config:
-                        if "Links" in drive_config[drive_id] and "Volumes" in drive_config[drive_id]["Links"]:
-                            del drive_config[drive_id]["Links"]["Volumes"]
+                    drive_path = link["@odata.id"]
+                    chassis_id = drive_path.split("/")[-3]
+                    drive_id = drive_path.split("/")[-1]
+                    full_drive_key = f"{chassis_id}/{drive_id}"
+
+                    if full_drive_key in drive_config:
+                        if "Links" in drive_config[full_drive_key] and "Volumes" in drive_config[full_drive_key]["Links"]:
+                            drive_config[full_drive_key]["Links"]["Volumes"] = []
 
                 del volume_members[ident1][ident2][ident3]
 
