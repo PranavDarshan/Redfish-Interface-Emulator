@@ -52,14 +52,23 @@ class VolumeCollectionAPI(Resource):
             if ident2 not in volume_members[ident1]:
                 volume_members[ident1][ident2] = {}
 
-            volume_id = len(volume_members[ident1][ident2]) + 1
+            # Assign the lowest available volume ID
+            existing_ids = {
+                int(vol_id.split('-')[-1])
+                for vol_id in volume_members[ident1][ident2]
+                if vol_id.startswith("Volume-")
+            }
+            volume_id = 1
+            while volume_id in existing_ids:
+                volume_id += 1
+
             req = request.json
             links = req['Links']['Drives']
             volume_uuid = str(uuid.uuid4())
             min_capacity_bytes = float('inf')
             drive_links = []
 
-            # Extract system number
+            
             system_number = ident1.split('-')[-1]
 
             # Validate all drives are from same chassis and valid range
@@ -72,8 +81,8 @@ class VolumeCollectionAPI(Resource):
             except:
                 return {"error": f"Invalid chassis format in {first_chassis}"}, 400
 
-            if chassis_num_int < 1 or chassis_num_int > 7:
-                return {"error": f"Drive not found: {first_chassis}. Only chassis 1 to 7 are valid."}, 400
+            if chassis_num_int < 1 or chassis_num_int > 6:
+                return {"error": f"Drive not found: {first_chassis}. Only chassis 1 to 6 are valid."}, 400
 
             if any(link["@odata.id"].split('/')[-3] != first_chassis for link in links):
                 return {"error": "Cannot mix drives from different chassis in a single volume on a rackmount server."}, 400
@@ -87,7 +96,6 @@ class VolumeCollectionAPI(Resource):
                 drive_id = drive_path.split('/')[-1]
                 full_drive_key = f"{chassis_id}/{drive_id}"
 
-                # Validate drive number is in valid range
                 try:
                     drive_num = int(drive_id.split('-')[-1])
                 except:
@@ -163,9 +171,6 @@ class VolumeCollectionAPI(Resource):
         except Exception:
             traceback.print_exc()
             return {"error": "Internal server error"}, INTERNAL_ERROR
-
-
-        
 class VolumeAPI(Resource):
     def __init__(self, **kwargs):
         self.rb = kwargs.get('rb', '')
@@ -188,25 +193,30 @@ class VolumeAPI(Resource):
     
     def delete(self, ident1, ident2, ident3):
         try:
-            if ident1 in volume_members and ident2 in volume_members[ident1] and ident3 in volume_members[ident1][ident2]:
-                volume_data = volume_members[ident1][ident2][ident3]
-                drive_links = volume_data["Links"]["Drives"]
+            if ident1 not in volume_members:
+                return {"error": f"System {ident1} not found."}, 404
+            if ident2 not in volume_members[ident1]:
+                return {"error": f"Storage {ident2} not found under system {ident1}."}, 404
+            if ident3 not in volume_members[ident1][ident2]:
+                return {"error": f"Volume {ident3} not found under system {ident1}, storage {ident2}."}, 404
 
-                for link in drive_links:
-                    drive_path = link["@odata.id"]
-                    chassis_id = drive_path.split("/")[-3]
-                    drive_id = drive_path.split("/")[-1]
-                    full_drive_key = f"{chassis_id}/{drive_id}"
+            volume_data = volume_members[ident1][ident2][ident3]
+            drive_links = volume_data["Links"]["Drives"]
 
-                    if full_drive_key in drive_config:
-                        if "Links" in drive_config[full_drive_key] and "Volumes" in drive_config[full_drive_key]["Links"]:
-                            drive_config[full_drive_key]["Links"]["Volumes"] = []
+            for link in drive_links:
+                drive_path = link["@odata.id"]
+                chassis_id = drive_path.split("/")[-3]
+                drive_id = drive_path.split("/")[-1]
+                full_drive_key = f"{chassis_id}/{drive_id}"
 
-                del volume_members[ident1][ident2][ident3]
+                if full_drive_key in drive_config:
+                    if "Links" in drive_config[full_drive_key] and "Volumes" in drive_config[full_drive_key]["Links"]:
+                        drive_config[full_drive_key]["Links"]["Volumes"] = []
 
-                return {"message": f"Volume {ident3} deleted successfully."}, 204
-            else:
-                return {"error": "Volume not found."}, 404
+            del volume_members[ident1][ident2][ident3]
+
+            return {"message": f"Volume {ident3} deleted successfully."}, 204
+
         except Exception:
             traceback.print_exc()
             return {"error": "Internal server error"}, INTERNAL_ERROR
