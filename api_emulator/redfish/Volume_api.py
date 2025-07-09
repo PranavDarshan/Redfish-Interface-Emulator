@@ -109,7 +109,10 @@ class VolumeCollectionAPI(Resource):
                     for drv in drive_links:
                         d = drv.split('/')[-1]
                         cid = drv.split('/')[-3]
-                        del drive_config[cid][d]
+                        drv_response, _ = drive_api.get(cid, d)
+                        if not drv_response["Links"]["Volumes"]:
+                            if cid in drive_config and d in drive_config[cid]:
+                                del drive_config[cid][d]
                     return {"error":f"Cannot create volume with the drive. Drive {drive} is already attached to another volume."}, 400
             
             vid = "Volume-"+str(volume_id)
