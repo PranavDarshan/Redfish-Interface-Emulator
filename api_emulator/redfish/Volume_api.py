@@ -88,7 +88,7 @@ class VolumeCollectionAPI(Resource):
                 return {"error": "Cannot mix drives from different chassis in a single volume on a rackmount server."}, 400
 
             if system_number != first_chassis_number:
-                return {"error": f"Only drives from Chassis-{system_number} can be used with System-{ident1}."}, 400
+                return {"error": f"Only drives from Chassis-{system_number} can be used with {ident1}."}, 400
 
             for link in links:
                 drive_path = link["@odata.id"]
