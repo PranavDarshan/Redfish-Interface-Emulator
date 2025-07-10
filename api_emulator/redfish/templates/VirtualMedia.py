@@ -7,7 +7,7 @@ _TEMPLATE = {
     "Id": "{member_id}",
     "Name": "Virtual Media {member_id}",
     "Description": "Represents a virtual media device for remote mounting",
-    "Inserted": True,
+    "Inserted": False,
     "Image": None,
     "MediaTypes": ["CD", "DVD", "Floppy", "USBStick"],
     "WriteProtected": True,
