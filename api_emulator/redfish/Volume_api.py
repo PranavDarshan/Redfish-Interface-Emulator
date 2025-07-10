@@ -112,18 +112,19 @@ class VolumeCollectionAPI(Resource):
 
                 drive_links.append(drive_path)
 
-                capacity = drive_config.get(full_drive_key, {}).get('CapacityBytes', float('inf'))
+                capacity = drive_config[chassis_id][drive_id]['CapacityBytes']
                 if capacity < min_capacity_bytes:
                     min_capacity_bytes = capacity
-
+                
             n = len(drive_links)
+            
             capacity_requested = req['CapacityBytes']
             raid_type = req['RAIDType']
-
             if raid_type == "RAID0":
                 if n < 2:
                     return {"error": "RAID0 requires at least 2 drives."}, 400
                 if capacity_requested > n * min_capacity_bytes:
+                   
                     return {"error": f"RAID0 max capacity exceeded: {n * min_capacity_bytes}"}, 400
             elif raid_type == "RAID1":
                 if n < 2:
