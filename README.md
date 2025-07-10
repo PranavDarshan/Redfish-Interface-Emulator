@@ -363,7 +363,7 @@ These dynamic resources are available in the [SNIA API Emulator repository](http
 | ./Chassis/{id}/NetworkAdapters/{id}/NetworkDeviceFunctions/{id} | networkdevicefunctions_api.py  
 | ./Chassis/{id}/NetworkAdapters/{id}/Ports/{id} | nwports_api\.py
 | ./Systems/{id} | ComputerSystem_api.py   
-| ./Systems/{id}/Storage/{id}/Volumes/{id} | volumes_api  
+| ./Systems/{id}/Storage/{id}/Volumes/{id} | Volume_api.py  
 | ./Systems/{id}/Storage/{id}/StoragePools/{id} | storagepools_api.py  
 | ./Systems/{id}/Memory/{id} | memory.py
 | ./Systems/{id}/Memory/{id}/MemoryDomains/{id} | memory_domains_api.py
