@@ -12,6 +12,19 @@ from .templates.bios_settings import get_Bios_Settings_instance
 bios_setting = {}  
 INTERNAL_ERROR = 500
 
+ALLOWED_BIOS_ATTRIBUTES = {
+    "AdminPhone": str,
+    "BootMode": str,
+    "EmbeddedSata": str,
+    "NicBoot1": str,
+    "NicBoot2": str,
+    "PowerProfile": str,
+    "ProcCoreDisable": int,
+    "ProcHyperthreading": ["Enabled", "Disabled"],
+    "ProcTurboMode": ["Enabled", "Disabled"],
+    "UsbControl": str
+}
+
 # BIOS Settings Singleton API
 class BiosSettingsAPI(Resource):
 
@@ -31,7 +44,7 @@ class BiosSettingsAPI(Resource):
             return bios_setting[ident], 200
         except Exception:
             traceback.print_exc()
-            return INTERNAL_ERROR
+            return {"error": "Internal server error"}, INTERNAL_ERROR
 
     # HTTP PATCH - Update BIOS settings for a specific system
     def patch(self, ident):
@@ -47,11 +60,16 @@ class BiosSettingsAPI(Resource):
 
             # Update only the specified attributes
             for key, value in request.json.items():
-                if key in bios_setting[ident]['Attributes']:
-                    bios_setting[ident]['Attributes'][key] = value
-                else:
-                    return f"Invalid BIOS attribute: {key}", 400
+                if key not in ALLOWED_BIOS_ATTRIBUTES:
+                    return {"error": f"Invalid BIOS attribute: {key}"}, 400
+                allowed_type = ALLOWED_BIOS_ATTRIBUTES[key]
 
+                if isinstance(allowed_type, list):
+                    if value not in allowed_type:
+                        return {"error": f"Invalid value for {key}. Must be one of {allowed_type}"}, 400
+                elif not isinstance(value, allowed_type):
+                    return {"error": f"Invalid type for {key}. Expected {allowed_type.__name__}"}, 400
+                bios_setting[ident]['Attributes'][key] = value
             return bios_setting[ident], 200
         except Exception:
             traceback.print_exc()
