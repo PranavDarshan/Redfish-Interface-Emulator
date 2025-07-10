@@ -68,7 +68,14 @@ class VolumeCollectionAPI(Resource):
             min_capacity_bytes = float('inf')
             drive_links = []
 
-            
+            # Check for duplicate drives in the request
+            seen_paths = set()
+            for link in links:
+                dp = link["@odata.id"]
+                if dp in seen_paths:
+                    return {"error": f"Duplicate drive in request: {dp}"}, 400
+                seen_paths.add(dp)
+
             system_number = ident1.split('-')[-1]
 
             # Validate all drives are from same chassis and valid range
@@ -90,6 +97,8 @@ class VolumeCollectionAPI(Resource):
             if system_number != first_chassis_number:
                 return {"error": f"Only drives from Chassis-{system_number} can be used with {ident1}."}, 400
 
+            used_drives = []  #Track all used drives
+
             for link in links:
                 drive_path = link["@odata.id"]
                 chassis_id = drive_path.split('/')[-3]
@@ -108,23 +117,29 @@ class VolumeCollectionAPI(Resource):
                 response, status = drive_api.get(chassis_id, drive_id)
 
                 if full_drive_key in drive_config and drive_config[full_drive_key]["Links"]["Volumes"]:
-                    return {"error": f"Drive {drive_path} is already attached to a volume."}, 400
+                    used_drives.append(drive_path)
 
                 drive_links.append(drive_path)
 
                 capacity = drive_config[chassis_id][drive_id]['CapacityBytes']
                 if capacity < min_capacity_bytes:
                     min_capacity_bytes = capacity
-                
+
+            # After loop: check if any were used
+            if used_drives:
+                return {
+                    "error": "The following drives are already in use by other volumes.",
+                    "drives": used_drives
+                }, 400
+
             n = len(drive_links)
-            
             capacity_requested = req['CapacityBytes']
             raid_type = req['RAIDType']
+
             if raid_type == "RAID0":
                 if n < 2:
                     return {"error": "RAID0 requires at least 2 drives."}, 400
                 if capacity_requested > n * min_capacity_bytes:
-                   
                     return {"error": f"RAID0 max capacity exceeded: {n * min_capacity_bytes}"}, 400
             elif raid_type == "RAID1":
                 if n < 2:
@@ -147,6 +162,7 @@ class VolumeCollectionAPI(Resource):
                 if capacity_requested > (n // 2) * min_capacity_bytes:
                     return {"error": f"RAID10 max capacity exceeded: {(n // 2) * min_capacity_bytes}"}, 400
 
+            # Update drive links to point to this volume
             for drive_path in drive_links:
                 chassis_id = drive_path.split('/')[-3]
                 drive_id = drive_path.split('/')[-1]
@@ -172,6 +188,7 @@ class VolumeCollectionAPI(Resource):
         except Exception:
             traceback.print_exc()
             return {"error": "Internal server error"}, INTERNAL_ERROR
+
 class VolumeAPI(Resource):
     def __init__(self, **kwargs):
         self.rb = kwargs.get('rb', '')
