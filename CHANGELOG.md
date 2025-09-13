@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.2.2] - 2025-09-12
+- Added reset support, config updates, virtual media, and RAID volume management
+
+## [1.2.1] - 2025-07-11
+- Corrected the representation of the 'ComputerSystemCollection' resource
+
 ## [1.2.0] - 2024-05-31
 - Corrected URIs for embedded Bios mockups
 - Removed errant usage of application/xml responses
